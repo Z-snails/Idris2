@@ -356,6 +356,7 @@ record GlobalDef where
                   -- occurs check)
   linearChecked : Bool -- Flag whether we've already checked its linearity
   definition : Def
+  rtErasable : List Nat -- the arguments which can be erased at runtime
   compexpr : Maybe CDef
   namedcompexpr : Maybe NamedDef
   sizeChange : List SCCall

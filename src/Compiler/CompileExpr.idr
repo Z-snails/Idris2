@@ -22,6 +22,9 @@ data Args
     | EraseArgs Nat (List Nat)
     | Arity Nat
 
+allErasable : GlobalDef -> List Nat
+allErasable gdef = nub $ merge gdef.eraseArgs gdef.rtErasable
+
 ||| Extract the number of arguments from a term, or return that it's
 ||| a newtype by a given argument position
 numArgs : Defs -> Term vars -> Core Args
@@ -30,9 +33,9 @@ numArgs defs (Ref _ _ n)
     = do Just gdef <- lookupCtxtExact n (gamma defs)
               | Nothing => pure (Arity 0)
          case definition gdef of
-           DCon _ arity Nothing => pure (EraseArgs arity (eraseArgs gdef))
+           DCon _ arity Nothing => pure (EraseArgs arity (allErasable gdef))
            DCon _ arity (Just (_, pos)) => pure (NewTypeBy arity pos)
-           PMDef _ args _ _ _ => pure (EraseArgs (length args) (eraseArgs gdef))
+           PMDef _ args _ _ _ => pure (EraseArgs (length args) (allErasable gdef))
            ExternDef arity => pure (Arity arity)
            ForeignDef arity _ => pure (Arity arity)
            Builtin {arity} f => pure (Arity arity)

@@ -1089,7 +1089,8 @@ TTC GlobalDef where
   toBuf b gdef
       = -- Only write full details for user specified names. The others will
         -- be holes where all we will ever need after loading is the definition
-        do toBuf b (compexpr gdef)
+        do toBuf b (rtErasable gdef)
+           toBuf b (compexpr gdef)
            toBuf b (map NameMap.toList (refersToRuntimeM gdef))
            toBuf b (location gdef)
            -- We don't need any of the rest for code generation, so if
@@ -1119,7 +1120,8 @@ TTC GlobalDef where
       cwName (WithBlock _ _) = True
       cwName _ = False
   fromBuf b
-      = do cdef <- fromBuf b
+      = do rtErasable <- fromBuf b
+           cdef <- fromBuf b
            refsRList <- fromBuf b
            let refsR = map fromList refsRList
            loc <- fromBuf b
@@ -1141,10 +1143,10 @@ TTC GlobalDef where
                       sc <- fromBuf b
                       pure (MkGlobalDef loc name ty eargs seargs specargs iargs
                                         mul vars vis
-                                        tot hatch fl refs refsR inv c True def cdef Nothing sc Nothing)
+                                        tot hatch fl refs refsR inv c True def rtErasable cdef Nothing sc Nothing)
               else pure (MkGlobalDef loc name (Erased loc Placeholder) [] [] [] []
                                      mul [] Public unchecked False [] refs refsR
-                                     False False True def cdef Nothing [] Nothing)
+                                     False False True def rtErasable cdef Nothing [] Nothing)
 
 export
 TTC Transform where

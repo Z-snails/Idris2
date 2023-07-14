@@ -345,6 +345,7 @@ newDef fc n rig vars ty vis def
         , noCycles = False
         , linearChecked = False
         , definition = def
+        , rtErasable = []
         , compexpr = Nothing
         , namedcompexpr = Nothing
         , sizeChange = []
@@ -1339,6 +1340,7 @@ addBuiltin n ty tot op
          , noCycles = False
          , linearChecked = True
          , definition = Builtin op
+         , rtErasable = []
          , compexpr = Nothing
          , namedcompexpr = Nothing
          , sizeChange = []

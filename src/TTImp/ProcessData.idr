@@ -247,6 +247,7 @@ findNewtype [con]
                  _ => Nothing
 findNewtype _ = pure ()
 
+-- If you add patterns here, also add them to `findUnitPos`
 hasArgs : {auto _ : Ref Ctxt Defs} -> Nat -> Term vs -> Core Bool
 hasArgs (S k) (Bind _ _ (Pi _ c _ ty) sc)
     = if isErased c || !(isUnitType ty)
@@ -394,6 +395,26 @@ calcConInfo fc type cons
            | True => pure ()
         pure ()
      -- ... maybe more to come? The Bool just says when to stop looking
+
+-- This should match patterns in `hasArgs`
+findUnitPos :
+    Ref Ctxt Defs =>
+    Term vs ->
+    Nat ->
+    Core (List Nat)
+findUnitPos (Bind _ _ (Pi _ _ _ ty) sc) p =
+    if !(isUnitType ty)
+        then (p ::) <$> findUnitPos sc (S p)
+        else findUnitPos sc (S p)
+findUnitPos _ _ = pure [] 
+
+updateRtErasable : Ref Ctxt Defs => Constructor -> Core ()
+updateRtErasable con = do
+    defs <- get Ctxt
+    Just gdef <- lookupCtxtExact con.name defs.gamma
+        | Nothing => throw $ InternalError "undefined name in TTImp.ProcessData.updateRtErasable: \{show con.name}"
+    unitPos <- findUnitPos con.type Z
+    ignore $ addDef con.name $ { rtErasable $= nub . merge unitPos } gdef
 
 export
 processData : {vars : _} ->

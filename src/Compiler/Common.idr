@@ -143,6 +143,7 @@ getMinimalDef : ContextEntry -> Core (GlobalDef, Maybe (Namespace, Binary))
 getMinimalDef (Decoded def) = pure (def, Nothing)
 getMinimalDef (Coded ns bin)
     = do b <- newRef Bin bin
+         rtErasable <- fromBuf b
          cdef <- fromBuf b
          refsRList <- fromBuf b
          let refsR = map fromList refsRList
@@ -153,7 +154,7 @@ getMinimalDef (Coded ns bin)
              = MkGlobalDef fc name (Erased fc Placeholder) [] [] [] [] mul
                            [] Public (MkTotality Unchecked IsCovering) False
                            [] Nothing refsR False False True
-                           None cdef Nothing [] Nothing
+                           None rtErasable cdef Nothing [] Nothing
          pure (def, Just (ns, bin))
 
 -- ||| Recursively get all calls in a function definition
